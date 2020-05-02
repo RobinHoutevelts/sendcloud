@@ -135,6 +135,8 @@ class Client
      * @param string|null $customsInvoiceNumber
      * @param int|null One of {@see Parcel::CUSTOMS_SHIPMENT_TYPES}.
      * @param ParcelItem[]|null $items Items contained in the parcel.
+     * @param string|null $externalReference Can be used to uniquely identify a Parcel using your own external
+     * reference. This field is used to create idempotence.
      * @return Parcel
      * @throws SendCloudRequestException
      */
@@ -145,7 +147,8 @@ class Client
         ?int $weight = null,
         ?string $customsInvoiceNumber = null,
         ?int $customsShipmentType = null,
-        ?array $items = null
+        ?array $items = null,
+        ?string $externalReference = null
     ): Parcel {
         $parcelData = $this->getParcelData(
             null,
@@ -158,7 +161,8 @@ class Client
             null,
             $customsInvoiceNumber,
             $customsShipmentType,
-            $items
+            $items,
+            $externalReference
         );
 
         try {
@@ -392,6 +396,45 @@ class Client
     }
 
     /**
+     * Retrieves parcels updated after a specific time.
+     *
+     * @param \DateTime $updatedAfter
+     * @return \Generator|Parcel[]
+     * @throws SendCloudClientException
+     */
+    public function getParcelsUpdatedAfter(\DateTime $updatedAfter): \Generator
+    {
+        try {
+            $nextPage = null;
+
+            $queryData = [
+                'updated_after' => $updatedAfter->format(\DateTime::ATOM),
+            ];
+
+            do {
+                if ($nextPage) {
+                    $queryData['cursor'] = $nextPage;
+                }
+
+                $response = $this->guzzleClient->get('parcels', [
+                    'query' => $queryData,
+                ]);
+
+                $response = json_decode((string)$response->getBody(), true);
+                $nextPage = $response['next'];
+
+                foreach ($response['parcels'] as &$parcelData) {
+                    yield new Parcel($parcelData);
+                    unset($parcelData); // immediately unset to help gc
+                }
+            } while($nextPage);
+
+        } catch (RequestException $exception) {
+            throw $this->parseRequestException($exception, 'Could not retrieve parcel.');
+        }
+    }
+
+    /**
      * Parse a webhook event using the client's secret key. See {@see Utility::parseWebhookRequest()} for specifics.
      *
      * @param RequestInterface $request
@@ -443,6 +486,8 @@ class Client
      * @param string|null $customsInvoiceNumber
      * @param int|null One of {@see Parcel::CUSTOMS_SHIPMENT_TYPES}.
      * @param ParcelItem[]|null $items
+     * @param string|null $externalReference Can be used to uniquely identify a Parcel using your own external
+     * reference. This field is used to create idempotence.
      * @return mixed[]
      */
     protected function getParcelData(
@@ -456,7 +501,8 @@ class Client
         $senderAddress,
         ?string $customsInvoiceNumber,
         ?int $customsShipmentType,
-        ?array $items
+        ?array $items,
+        ?string $externalReference
     ): array {
         $parcelData = [];
 
@@ -469,6 +515,7 @@ class Client
                 'name' => $shippingAddress->getName(),
                 'company_name' => $shippingAddress->getCompanyName() ?? '',
                 'address' => $shippingAddress->getStreet(),
+                'address_2' => $shippingAddress->getStreet2() ?? '',
                 'house_number' => $shippingAddress->getHouseNumber(),
                 'city' => $shippingAddress->getCity(),
                 'postal_code' => $shippingAddress->getPostalCode(),
@@ -529,6 +576,10 @@ class Client
             }
 
             $parcelData['parcel_items'] = $itemsData;
+        }
+
+        if ($externalReference) {
+            $parcelData['external_reference'] = $externalReference;
         }
 
         // Additional fields are only added when requesting a label

@@ -152,7 +152,8 @@ class Parcel
             (string)$data['postal_code'],
             (string)$data['country']['iso_2'],
             (string)$data['email'],
-            (string)$data['telephone']
+            (string)$data['telephone'],
+            (string)$data['address_2']
         );
 
         if (isset($data['tracking_url'])) {
@@ -296,7 +297,7 @@ class Parcel
             'carrier' => $this->getCarrier(),
             'created' => $this->getCreated()->format(DATE_ISO8601),
             'id' => $this->getId(),
-            'labels' => array_map(function (int $format): string {
+            'labels' => array_map(function (int $format): ?string {
                 return $this->getLabelUrl($format);
             }, self::LABEL_FORMATS),
             'orderNumber' => $this->getOrderNumber(),

@@ -13,6 +13,9 @@ class Address
     /** @var string */
     protected $street;
 
+    /** @var string|null */
+    protected $street2;
+
     /** @var string */
     protected $houseNumber;
 
@@ -40,11 +43,13 @@ class Address
         string $postalCode,
         string $countryCode,
         string $emailAddress,
-        ?string $phoneNumber
+        ?string $phoneNumber,
+        ?string $street2
     ) {
         $this->name = $name;
         $this->companyName = $companyName;
         $this->street = $street;
+        $this->street2 = $street2;
         $this->houseNumber = $houseNumber;
         $this->city = $city;
         $this->postalCode = $postalCode;
@@ -81,6 +86,16 @@ class Address
     public function setStreet(string $street): void
     {
         $this->street = $street;
+    }
+
+    public function getStreet2(): string
+    {
+        return $this->street2;
+    }
+
+    public function setStreet2(?string $street): void
+    {
+        $this->street2 = $street;
     }
 
     public function getHouseNumber(): string
@@ -167,6 +182,7 @@ class Address
             'phoneNumber' => $this->getPhoneNumber(),
             'postalCode' => $this->getPostalCode(),
             'street' => $this->getStreet(),
+            'street2' => $this->getStreet2(),
         ];
     }
 
