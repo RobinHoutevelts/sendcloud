@@ -88,7 +88,7 @@ class Address
         $this->street = $street;
     }
 
-    public function getStreet2(): string
+    public function getStreet2(): ?string
     {
         return $this->street2;
     }
