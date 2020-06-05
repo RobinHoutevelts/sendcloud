@@ -22,6 +22,9 @@ class ParcelItem
     /** @var string|null */
     private $harmonizedSystemCode;
 
+    /** @var string|null */
+    private $sku;
+
     /** @var string|null 2 letter code of item production country. */
     private $originCountryCode;
 
@@ -40,6 +43,9 @@ class ParcelItem
         if (isset($data['origin_country'])) {
             $item->setOriginCountryCode((string)$data['origin_country']);
         }
+        if (isset($data['sku'])) {
+            $item->setSku((string)$data['sku']);
+        }
 
         return $item;
     }
@@ -50,7 +56,8 @@ class ParcelItem
         int $weight,
         float $value,
         ?string $harmonizedSystemCode = null,
-        ?string $originCountryCode = null
+        ?string $originCountryCode = null,
+        ?string $sku = null
     ) {
         $this->setDescription($description);
         $this->setQuantity($quantity);
@@ -58,6 +65,7 @@ class ParcelItem
         $this->setValue($value);
         $this->setHarmonizedSystemCode($harmonizedSystemCode);
         $this->setOriginCountryCode($originCountryCode);
+        $this->setSku($sku);
     }
 
     public function getDescription(): string
@@ -108,6 +116,16 @@ class ParcelItem
     public function setHarmonizedSystemCode(?string $harmonizedSystemCode): void
     {
         $this->harmonizedSystemCode = $harmonizedSystemCode;
+    }
+
+    public function getSku(): ?string
+    {
+        return $this->sku;
+    }
+
+    public function setSku(?string $sku): void
+    {
+        $this->sku = $sku;
     }
 
     public function getOriginCountryCode(): ?string

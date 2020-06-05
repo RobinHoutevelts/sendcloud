@@ -572,6 +572,9 @@ class Client
                 if ($item->getOriginCountryCode()) {
                     $itemData['origin_country'] = $item->getOriginCountryCode();
                 }
+                if ($item->getSku()) {
+                    $itemData['sku'] = $item->getSku();
+                }
                 $itemsData[] = $itemData;
             }
 
